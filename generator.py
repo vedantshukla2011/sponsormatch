@@ -3,7 +3,7 @@ from groq import Groq
 def generate_pitch(team_info, lead, api_key):
     client = Groq(api_key=api_key)
     
-    # Safely handle 'lead' whether it is passed as a dictionary or a string
+    # Safely extract lead details regardless of format
     if isinstance(lead, dict):
         lead_name = lead.get("name", "Potential Sponsor")
         lead_address = lead.get("address", "N/A")
@@ -27,7 +27,7 @@ def generate_pitch(team_info, lead, api_key):
     """
 
     completion = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="openai/gpt-oss-120b",
         messages=[
             {"role": "user", "content": prompt}
         ],
