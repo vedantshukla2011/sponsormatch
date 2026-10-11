@@ -3,7 +3,7 @@ from groq import Groq
 def generate_pitch(team_info, lead, api_key):
     client = Groq(api_key=api_key)
     
-    # Extract lead details cleanly
+    # Safely extract lead details regardless of data structure
     if isinstance(lead, dict):
         lead_name = lead.get("name", "Potential Sponsor")
         lead_address = lead.get("address", "N/A")
@@ -27,7 +27,7 @@ def generate_pitch(team_info, lead, api_key):
     """
 
     completion = client.chat.completions.create(
-        model="llama3-70b-8192",
+        model="llama-3.1-8b-instant",
         messages=[
             {"role": "user", "content": prompt}
         ],
