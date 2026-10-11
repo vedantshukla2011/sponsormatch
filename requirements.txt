@@ -1,4 +1,4 @@
 streamlit
 requests
-google-maps-services-python
+googlemaps
 groq
