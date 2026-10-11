@@ -1,25 +1,37 @@
-import googlemaps
+import requests
 
 def fetch_leads(location, keyword, api_key):
-    gmaps = googlemaps.Client(key=api_key)
+    url = "https://places.googleapis.com/v1/places:searchText"
     
-    # Geocode the input location string
-    geocode_result = gmaps.geocode(location)
-    if not geocode_result:
-        raise Exception(f"Could not geocode location: {location}")
+    headers = {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": api_key,
+        "X-Goog-FieldMask": "places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.types"
+    }
+    
+    query_str = f"{keyword} in {location}" if location else keyword
+    
+    payload = {
+        "textQuery": query_str,
+        "pageSize": 20
+    }
+    
+    response = requests.post(url, json=payload, headers=headers)
+    
+    if response.status_code != 200:
+        raise Exception(f"API Error ({response.status_code}): {response.text}")
         
-    lat_lng = geocode_result[0]["geometry"]["location"]
-    
-    # Fetch nearby places matching keyword
-    places_result = gmaps.places(query=keyword, location=lat_lng, radius=15000)
+    data = response.json()
+    places = data.get("places", [])
     
     leads = []
-    for place in places_result.get("results", []):
+    for place in places:
+        display_name = place.get("displayName", {}).get("text", "Unknown Business")
         leads.append({
-            "name": place.get("name", "Unknown Business"),
-            "address": place.get("formatted_address", "Address unavailable"),
+            "name": display_name,
+            "address": place.get("formattedAddress", "Address unavailable"),
             "rating": place.get("rating", "N/A"),
-            "user_ratings_total": place.get("user_ratings_total", 0),
+            "user_ratings_total": place.get("userRatingCount", 0),
             "types": place.get("types", [])
         })
         
