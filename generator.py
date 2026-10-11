@@ -1,47 +1,38 @@
 from groq import Groq
 
-def generate_pitch(team_info, lead_info, api_key):
-    """
-    Generates a tailored sponsorship pitch email using Groq's Llama 3 model.
-    """
+def generate_pitch(team_info, lead, api_key):
     client = Groq(api_key=api_key)
+    
+    # Safely handle 'lead' whether it is passed as a dictionary or a string
+    if isinstance(lead, dict):
+        lead_name = lead.get("name", "Potential Sponsor")
+        lead_address = lead.get("address", "N/A")
+        lead_types = ", ".join(lead.get("types", [])) if isinstance(lead.get("types"), list) else "Business"
+    else:
+        lead_name = str(lead)
+        lead_address = "N/A"
+        lead_types = "Business"
 
     prompt = f"""
-    You are an outreach lead for a high school robotics team seeking corporate sponsorship.
-    Write a concise, high-impact sponsorship pitch email tailored to a prospective sponsor.
+    You are an expert corporate sponsorship outreach coordinator. Write a compelling, professional sponsorship proposal email.
 
-    Team Information:
-    - Competition League: {team_info.get('league')}
-    - Key Highlight: {team_info.get('highlight')}
-    - Funding Request: {team_info.get('request')}
-    - Team Location Zip Code: {team_info.get('zip_code')}
+    Target Business: {lead_name}
+    Address: {lead_address}
+    Industry: {lead_types}
 
-    Prospective Sponsor Information:
-    - Company Name: {lead_info.get('Name')}
-    - Address: {lead_info.get('Address')}
-    - Industry/Category: {lead_info.get('Category')}
+    Our Team & Goals:
+    {team_info}
 
-    Formatting & Style Requirements:
-    1. Professional, passionate, and concise (150-200 words max).
-    2. Directly connect the company's industry to the team's technical goals (e.g., engineering, manufacturing, workforce development).
-    3. Include placeholders like [Your Name], [Your Team Number], and [Contact Phone/Email].
-    4. Do not include a subject line in the body text (subject is handled separately).
+    Write a personalized pitch email requesting a sponsorship partnership or meeting. Keep it professional, concise, and persuasive. Include placeholders like [Your Name] and [Your Title] where appropriate.
     """
 
-    response = client.chat.completions.create(
+    completion = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
         messages=[
-            {
-                "role": "system",
-                "content": "You are an expert STEM fundraising advisor specializing in tech and engineering team sponsorships."
-            },
-            {
-                "role": "user",
-                "content": prompt,
-            }
+            {"role": "user", "content": prompt}
         ],
-        model="openai/gpt-oss-120b",
         temperature=0.7,
-        max_tokens=500
+        max_tokens=1000,
     )
 
-    return response.choices[0].message.content
+    return completion.choices[0].message.content
